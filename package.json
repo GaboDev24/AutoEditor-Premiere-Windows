@@ -1,0 +1,26 @@
+{
+  "name": "auto-editor-premiere",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-assisted video editing system for Adobe Premiere Pro",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:mcp": "pnpm --filter mcp-server dev",
+    "dev:orchestrator": "pnpm --filter orchestrator dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0"
+  }
+}

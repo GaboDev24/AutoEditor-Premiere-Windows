@@ -1,0 +1,24 @@
+{
+  "name": "AutoEditor UXP Bridge",
+  "id": "com.autoeditor.uxp-bridge",
+  "version": "0.1.0",
+  "description": "AutoEditor Premiere bridge panel using UXP APIs. Requires Premiere Pro v25.2+.",
+  "host": {
+    "app": "PPRO",
+    "minVersion": "25.2"
+  },
+  "entryPoints": [
+    {
+      "type": "panel",
+      "id": "com.autoeditor.uxp-bridge.panel",
+      "label": "AutoEditor Bridge",
+      "main": "index.html"
+    }
+  ],
+  "permissions": {
+    "network": {
+      "domains": ["localhost"]
+    },
+    "localFileSystem": "fullAccess"
+  }
+}

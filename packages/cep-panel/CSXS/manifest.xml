@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CEP Extension manifest for AutoEditor Premiere Bridge.
+  Compatible with Premiere Pro 2021 (v21.0) and later via CEP 10+.
+
+  This extension acts as the ExtendScript bridge:
+  it opens a local TCP socket on port 3201, receives script payloads
+  from the MCP server, evaluates them via csInterface.evalScript(),
+  and returns the result.
+
+  To install in development:
+    1. Set CSXS.PlayerDebugMode = 1 in the Windows Registry:
+       HKEY_CURRENT_USER\SOFTWARE\Adobe\CSXS.10  (or CSXS.11 for newer versions)
+    2. Copy this folder to:
+       %APPDATA%\Adobe\CEP\extensions\autoeditor-bridge\
+    3. Restart Premiere Pro.
+-->
+<ExtensionManifest Version="6.0" ExtensionBundleId="com.autoeditor.bridge"
+                   ExtensionBundleVersion="0.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <ExtensionList>
+    <Extension Id="com.autoeditor.bridge.panel" Version="0.1.0"/>
+  </ExtensionList>
+
+  <ExecutionEnvironment>
+    <HostList>
+      <!-- Premiere Pro 2021 (v21.0) through latest -->
+      <Host Name="PPRO" Version="[21.0,99.9]"/>
+    </HostList>
+    <LocaleList>
+      <Locale Code="All"/>
+    </LocaleList>
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="10.0"/>
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+
+  <DispatchInfoList>
+    <Extension Id="com.autoeditor.bridge.panel">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./panel.html</MainPath>
+          <ScriptPath>./jsx/bridge.jsx</ScriptPath>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>true</AutoVisible>
+          <!-- Keep the panel alive in the background so the TCP socket stays open -->
+          <StartOn>
+            <Event>applicationActivate</Event>
+          </StartOn>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>AutoEditor Bridge</Menu>
+          <Geometry>
+            <Size>
+              <Height>120</Height>
+              <Width>260</Width>
+            </Size>
+            <MinSize>
+              <Height>80</Height>
+              <Width>200</Width>
+            </MinSize>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+
+</ExtensionManifest>

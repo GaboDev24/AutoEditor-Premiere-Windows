@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoEditor Bridge</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #121212;
+      color: #e8e8f0;
+      font-size: 12px;
+      padding: 12px;
+    }
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    #status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #555570;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    #status-dot.connected { background: #22c55e; }
+    #status-dot.error     { background: #ef4444; }
+    #status-text          { color: #8888a0; font-size: 11px; }
+    #log {
+      background: #050505;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #8888a0;
+      height: 60px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-bar">
+    <div id="status-dot"></div>
+    <span id="status-text">Starting UXP bridge...</span>
+  </div>
+  <div id="log">Waiting for connection...</div>
+  <script src="index.js"></script>
+</body>
+</html>
