@@ -47,7 +47,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:3100"],
     allow_methods=["POST", "GET"],
-    allow_headers=["*"],
+    # Explicit allowlist — avoid wildcard to prevent accepting arbitrary custom headers.
+    allow_headers=["Content-Type", "Accept"],
 )
 
 

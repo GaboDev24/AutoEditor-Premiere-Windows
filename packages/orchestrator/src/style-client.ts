@@ -64,17 +64,32 @@ export interface VideoStyleProfile {
   key_frame_paths: string[];
 }
 
+/** Default timeout for all requests to the Style Analysis service (ms). */
+const FETCH_TIMEOUT_MS = 30_000;
+
 async function post<T>(endpoint: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Style Analysis API error ${res.status} on ${endpoint}: ${text}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Style Analysis API error ${res.status} on ${endpoint}: ${text}`);
+    }
+    return res.json() as Promise<T>;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Style Analysis request timed out after ${FETCH_TIMEOUT_MS / 1000}s on ${endpoint}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-  return res.json() as Promise<T>;
 }
 
 export async function analyzeAudio(filePath: string): Promise<AudioAnalysisResult> {

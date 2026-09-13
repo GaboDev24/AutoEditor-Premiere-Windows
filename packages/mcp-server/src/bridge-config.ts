@@ -43,8 +43,13 @@ export function resolveBridgeMode(): BridgeMode {
   const versionStr = process.env.PREMIERE_VERSION;
   if (versionStr) {
     const version = parseFloat(versionStr);
-    // UXP is only reliable from v25.2 onward
-    if (version >= 25.2) {
+    if (Number.isNaN(version)) {
+      // Emit a warning instead of silently falling through with NaN comparison.
+      console.error(
+        `[bridge-config] Warning: PREMIERE_VERSION="${versionStr}" is not a valid number. ` +
+        `Defaulting to extendscript mode.`
+      );
+    } else if (version >= 25.2) {
       return "uxp";
     }
   }

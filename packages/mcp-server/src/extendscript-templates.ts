@@ -15,6 +15,18 @@ function escStr(value: string): string {
 }
 
 /**
+ * Validates that a value is a safe integer before interpolating it
+ * into an ExtendScript string. Throws if the value is not a finite
+ * integer — prevents code injection via manipulated tool arguments.
+ */
+function safeInt(value: number, name: string): number {
+  if (!Number.isInteger(value) || !Number.isFinite(value)) {
+    throw new Error(`ExtendScript injection guard: "${name}" must be a finite integer, got ${value}`);
+  }
+  return value;
+}
+
+/**
  * Returns an ExtendScript snippet that imports a file into the active project.
  * Corresponds to MCP tool: importMedia
  *
@@ -60,16 +72,18 @@ export function insertClipScript(
   startTimeTicks: string,
   trackType: "video" | "audio"
 ): string {
+  const pi = safeInt(projectItemIndex, "projectItemIndex");
+  const ti = safeInt(trackIndex, "trackIndex");
   const trackProperty = trackType === "video" ? "videoTracks" : "audioTracks";
   return `
 (function() {
   var proj = app.project;
   var seq = proj.activeSequence;
   if (!seq) { return JSON.stringify({ error: "No active sequence" }); }
-  var item = proj.rootItem.children[${projectItemIndex}];
-  if (!item) { return JSON.stringify({ error: "Project item not found at index ${projectItemIndex}" }); }
-  var track = seq.${trackProperty}[${trackIndex}];
-  if (!track) { return JSON.stringify({ error: "Track not found at index ${trackIndex}" }); }
+  var item = proj.rootItem.children[${pi}];
+  if (!item) { return JSON.stringify({ error: "Project item not found at index ${pi}" }); }
+  var track = seq.${trackProperty}[${ti}];
+  if (!track) { return JSON.stringify({ error: "Track not found at index ${ti}" }); }
   var time = new Time();
   time.ticks = "${startTimeTicks}";
   var overwriteResult = track.insertClip(item, time);
@@ -86,13 +100,14 @@ export function insertClipScript(
  * @param timeTicks     Time at which to razor-cut (in Premiere ticks).
  */
 export function cutClipAtTimeScript(trackIndex: number, timeTicks: string): string {
+  const ti = safeInt(trackIndex, "trackIndex");
   return `
 (function() {
   var seq = app.project.activeSequence;
   if (!seq) { return JSON.stringify({ error: "No active sequence" }); }
   var time = new Time();
   time.ticks = "${timeTicks}";
-  seq.videoTracks[${trackIndex}].razor(time);
+  seq.videoTracks[${ti}].razor(time);
   return JSON.stringify({ success: true, timeTicks: "${timeTicks}" });
 })();
 `.trim();
@@ -107,13 +122,15 @@ export function cutClipAtTimeScript(trackIndex: number, timeTicks: string): stri
  * @param clipIndex    Index of the clip within the track (0-based).
  */
 export function removeClipScript(trackIndex: number, clipIndex: number): string {
+  const ti = safeInt(trackIndex, "trackIndex");
+  const ci = safeInt(clipIndex, "clipIndex");
   return `
 (function() {
   var seq = app.project.activeSequence;
   if (!seq) { return JSON.stringify({ error: "No active sequence" }); }
-  var track = seq.videoTracks[${trackIndex}];
+  var track = seq.videoTracks[${ti}];
   if (!track) { return JSON.stringify({ error: "Track not found" }); }
-  var clip = track.clips[${clipIndex}];
+  var clip = track.clips[${ci}];
   if (!clip) { return JSON.stringify({ error: "Clip not found" }); }
   clip.remove(false, true); // (false = do not ripple shift audio, true = ripple)
   return JSON.stringify({ success: true });
@@ -141,19 +158,21 @@ export function applyTransitionScript(
   durationTicks: string,
   alignment: "start" | "center" | "end"
 ): string {
+  const ti = safeInt(trackIndex, "trackIndex");
+  const ci = safeInt(clipIndex, "clipIndex");
   const alignMap = { start: 0, center: 1, end: 2 };
   const alignValue = alignMap[alignment];
   return `
 (function() {
   var seq = app.project.activeSequence;
   if (!seq) { return JSON.stringify({ error: "No active sequence" }); }
-  var track = seq.videoTracks[${trackIndex}];
+  var track = seq.videoTracks[${ti}];
   if (!track) { return JSON.stringify({ error: "Track not found" }); }
-  var clip = track.clips[${clipIndex}];
+  var clip = track.clips[${ci}];
   if (!clip) { return JSON.stringify({ error: "Clip not found" }); }
   var dur = new Time();
   dur.ticks = "${durationTicks}";
-  var result = seq.videoTracks[${trackIndex}].clips[${clipIndex}].addTransition(
+  var result = seq.videoTracks[${ti}].clips[${ci}].addTransition(
     ${escStr(transitionName)},
     ${alignValue},
     dur

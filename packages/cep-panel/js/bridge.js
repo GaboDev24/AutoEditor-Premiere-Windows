@@ -31,6 +31,8 @@ var statusText = document.getElementById("status-text");
 var logEl      = document.getElementById("log");
 var MAX_LOG_ENTRIES = 40;
 var logEntries = [];
+/** Hard cap on TCP receive buffer — protects against memory exhaustion. */
+var MAX_BUFFER_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function appendLog(text, cls) {
   logEntries.push({ text: text, cls: cls || "entry" });
@@ -78,6 +80,11 @@ var server = net.createServer(function(socket) {
 
   socket.on("data", function(chunk) {
     buffer = Buffer.concat([buffer, chunk]);
+    if (buffer.length > MAX_BUFFER_BYTES) {
+      appendLog("Buffer limit exceeded (" + buffer.length + " bytes) — closing connection", "err");
+      socket.destroy();
+      return;
+    }
     var msg;
     while ((msg = tryReadMessage(buffer)) !== null) {
       buffer = msg.remaining;
